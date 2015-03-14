@@ -14,7 +14,7 @@ def createInstance():
         imageId,
         key_name        = key,
         instance_type   = instanceType,
-        y_groups = ['default'])
+        security_groups = ['default'])
     
     instance = res.instances[0]
     
@@ -22,4 +22,3 @@ def createInstance():
         time.sleep(5)
     
     return instance.ip_address
-
