@@ -1,3 +1,9 @@
+#!/usr/bin/python
+#
+# Project: LinkOverflow test for xMatters
+# Author: Stephen W. Herd
+# Email: sharkannon@gmail.com
+
 import boto.ec2
 import time
 
