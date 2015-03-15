@@ -51,15 +51,20 @@ def createSSHClient(ipaddress, user):
 def installPuppetLabsRPM(ipaddress):
     print "Installing PuppetLabs RPM..."
     client = createSSHClient(ipaddress, defaultUser)
-    (stdin1, stdout1, stderr1) = client.exec_command('sudo rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm',get_pty=True)
+    (stdin, stdout, stderr) = client.exec_command('sudo rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm',get_pty=True)
+    channel = stdout.channel
+    status = channel.recv_exit_status()
     client.close()   
+    return status
 
 def installPuppet(ipaddress):
     installPuppetLabsRPM(ipaddress)
 
     print "Installing Puppet..."
     client = createSSHClient(ipaddress, defaultUser)
-    (stdin2, stdout2, stderr2) = client.exec_command('sudo yum install -y puppet facter', get_pty=True)
+    (stdin, stdout, stderr) = client.exec_command('sudo yum install -y puppet facter', get_pty=True)
+    channel = stdout.channel
+    status = channel.recv_exit_status()
     client.close()
     
 def uploadFile(ipaddress, localFile, remoteFile):
@@ -77,7 +82,9 @@ def installDjango(ipaddress):
     
     client = createSSHClient(ipaddress, defaultUser)
     print "Installing Django..."
-    (stdin1, stdout1, stderr1) = client.exec_command('sudo /usr/bin/puppet apply /home/centos/django.pp', get_pty=True)
+    (stdin, stdout, stderr) = client.exec_command('sudo /usr/bin/puppet apply /home/centos/django.pp', get_pty=True)
+    channel = stdout.channel
+    status = channel.recv_exit_status()
     client.close()
     
 installDjango(createInstance())
