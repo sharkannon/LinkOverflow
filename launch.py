@@ -18,7 +18,7 @@ instanceType    = 't2'
 puppetModules   = ['stankevich-python', 'stahnma-epel', 'puppetlabs-mysql', 'puppetlabs-apache']
 webSGName       = 'linkoverflow-webserver-sg'
 sshSGName       = 'linkoverflow-ssh-sg'
-keyDir=os.path.expanduser('~/.ssh')
+keyDir          = os.path.expanduser('~/.ssh')
 
 def createSecurityGroups(conn):
     print "Creating Security Group(s)...."
@@ -54,7 +54,6 @@ def createSecurityGroups(conn):
         else:
             raise
 
-    
 def createKey(conn):
     try:
         key = conn.get_all_key_pairs(keynames=[keyName])[0]
