@@ -7,8 +7,6 @@
 import boto.ec2
 import boto.manage.cmdshell
 import time
-import paramiko
-import socket
 import os
 
 region          = 'us-west-2'
@@ -20,7 +18,7 @@ instanceType    = 't2'
 puppetModules   = ['stankevich-python', 'stahnma-epel', 'puppetlabs-mysql', 'puppetlabs-apache']
 webSGName       = 'linkoverflow-webserver-sg'
 sshSGName       = 'linkoverflow-ssh-sg'
-
+keyDir=os.path.expanduser('~/.ssh')
 
 def createSecurityGroups(conn):
     print "Creating Security Group(s)...."
@@ -64,10 +62,10 @@ def createKey(conn):
         print 'Creating SSH Keypair(' + keyName + ')...'
         if e.code == 'InvalidKeyPair.NotFound':
             key = conn.create_key_pair(keyName)
-            key.save('.')
+            key.save(keyDir)
         else:
             raise
-        
+
 def createInstance(size = 'micro', numServers = 1):
     conn = boto.ec2.connect_to_region(region)
     
@@ -84,87 +82,57 @@ def createInstance(size = 'micro', numServers = 1):
     
     return res.instances
 
-def testSSH(ipaddress):
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    
-    return sock.connect_ex((ipaddress,22))
-
-def createSSHClient(ipaddress, user):
-    client = paramiko.SSHClient()
-    client.load_system_host_keys()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(ipaddress, username=user, key_filename=keyName + '.pem')
-    return client
-
-def installPuppetLabsRPM(ipaddress):
-    print "Installing PuppetLabs RPM("+ ipaddress +")..."
-    client = createSSHClient(ipaddress, defaultUser)
-    (_stdin_, stdout, _stderr_) = client.exec_command('sudo rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm',get_pty=True)
-    channel = stdout.channel
-    status = channel.recv_exit_status()
-    client.close()   
+def installPuppetLabsRPM(cmd):
+    print "Installing PuppetLabs RPM..."
+    channel = cmd.run_pty('sudo rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-7.noarch.rpm')
+    status = channel.recv_exit_status()  
     return status
 
-def installPuppet(ipaddress):
-    installPuppetLabsRPM(ipaddress)
+def installPuppet(cmd):
+    installPuppetLabsRPM(cmd)
 
-    print "Installing Puppet("+ ipaddress +")..."
-    client = createSSHClient(ipaddress, defaultUser)
-    (_stdin_, stdout, _stderr_) = client.exec_command('sudo yum install -y puppet facter', get_pty=True)
-    channel = stdout.channel
+    print "Installing Puppet..."
+    channel = cmd.run_pty('sudo yum install -y puppet facter')
     status = channel.recv_exit_status()
-    client.close()
     return status
 
-def installPuppetModule(ipaddress, puppetModule):
-    print "Installing Puppet Module(" + puppetModule + ") on "+ ipaddress +"..."
-    client = createSSHClient(ipaddress, defaultUser)
-    (_stdin_, stdout, _stderr_) = client.exec_command('sudo puppet module install ' + puppetModule, get_pty=True)
-    channel = stdout.channel
+def installPuppetModule(cmd, puppetModule):
+    print "Installing Puppet Module(" + puppetModule + ")..."
+    channel = cmd.run_pty('sudo puppet module install ' + puppetModule)
     status = channel.recv_exit_status()
-    client.close()
     return status
 
-def installPuppetModules(ipaddress):
-    installPuppet(ipaddress)
+def installPuppetModules(cmd):
+    installPuppet(cmd)
     for puppetModule in puppetModules:
-        installPuppetModule(ipaddress, puppetModule)
+        installPuppetModule(cmd, puppetModule)
 
-def uploadFile(ipaddress, localFile, remoteFile):
-    client = createSSHClient(ipaddress, defaultUser)
-    sftp = paramiko.SFTPClient.from_transport(client.get_transport())
-    
+def uploadFile(cmd, localFile, remoteFile):
+    sftp = cmd.open_sftp()
     sftp.put(localFile, remoteFile)
-    
     sftp.close()
-    client.close()
     
-def configEnv(ipaddress):
-    uploadFile(ipaddress, 'scripts/django.pp', '/home/centos/django.pp')
-    installPuppetModules(ipaddress)
-    
-    client = createSSHClient(ipaddress, defaultUser)
-    print "Configuring Environment("+ ipaddress +")..."
-    (_stdin, stdout, _stderr) = client.exec_command('sudo /usr/bin/puppet apply /home/centos/django.pp', get_pty=True)
-    channel = stdout.channel
+def configEnv(cmd):
+    uploadFile(cmd, 'scripts/django.pp', '/tmp/django.pp')
+    installPuppetModules(cmd)
+
+    print "Configuring Environment..."
+    channel = cmd.run_pty('sudo /usr/bin/puppet apply /tmp/django.pp')
     status = channel.recv_exit_status()
-    client.close()
     return status
 
+#def main()
 instances = createInstance('micro', 1)
+# Create .ssh dir and known_hosts file if they don't exist
+if not os.path.isdir(keyDir):
+    os.mkdir(keyDir, 0700)
+    
+open(os.path.join(keyDir, 'known_hosts'), 'a').close()
 
 for instance in instances:
     while instance.update() != "running":
         time.sleep(5)
     
-    #cmd = boto.manage.cmdshell.sshclient_from_instance(instance, keyName + '.pem', user_name=defaultUser)
-
-    #cmd.open_sftp()
-    
-    print "Testing SSH Conectivity on " + instance.ip_address + ". Please wait..."
-    
-    while testSSH(instance.ip_address) != 0:
-        time.sleep(5)
-    
-    configEnv(instance.ip_address)
+    cmd = boto.manage.cmdshell.sshclient_from_instance(instance, os.path.join(keyDir, keyName + '.pem'), user_name=defaultUser)
+    configEnv(cmd)
 
