@@ -7,7 +7,7 @@ class python_config {
     version    => 'system',
     pip        => true,
     dev        => true,
-    virtualenv => true,
+    virtualenv => false,
   } ->
   
   # Hack because pip provider looks for pip-python instead of the 'pip' command for RH distro's

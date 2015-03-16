@@ -1,4 +1,5 @@
 LinkOverflow
 
 Requirements
-python-boto
+paramiko
+boto
