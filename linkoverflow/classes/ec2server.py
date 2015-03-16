@@ -12,10 +12,11 @@ class Ec2Server(object):
     imageId         = 'ami-c7d092f7'
     keyName         = 'linkoverflow'
     instanceType    = 't2'
+    instanceSize    = 'micro'
     puppetModules   = ['stankevich-python', 'stahnma-epel', 'puppetlabs-mysql', 'puppetlabs-apache']
     webSGName       = 'linkoverflow-webserver-sg'
     sshSGName       = 'linkoverflow-ssh-sg'
-    keyDir          = os.path.expanduser('~/.ssh')    
+    keyDir          = '~/.ssh')   
     
     """
     def __init__(self, 
@@ -28,7 +29,7 @@ class Ec2Server(object):
                  puppetModules  = [],
                  webSGName      = 'linkoverflow-webserver-sg',
                  sshSGName      = 'linkoverflow-ssh-sg',        
-                 keyDir         = ('~/.ssh')):
+                 keyDir         = '~/.ssh'):
         
         self.region         = region
         self.sshuser        = sshuser
