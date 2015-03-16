@@ -13,7 +13,7 @@ class Ec2Server(object):
     keyName         = 'linkoverflow'
     instanceType    = 't2'
     instanceSize    = 'micro'
-    puppetModules   = ['stankevich-python', 'stahnma-epel', 'puppetlabs-mysql', 'puppetlabs-apache']
+    puppetModules   = ['stankevich-python', 'stahnma-epel', 'puppetlabs-apache']
     webSGName       = 'linkoverflow-webserver-sg'
     sshSGName       = 'linkoverflow-ssh-sg'
     keyDir          = '~/.ssh')   
