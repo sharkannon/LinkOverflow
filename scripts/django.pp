@@ -1,28 +1,25 @@
-stage { "pre": before => Stage["main"] }            
+stage { 'pre': before => Stage['main'] }            
 
-class python {
-  package {'python': 
-    ensure      => '2.7.5-16.el7',
+class python_config {
+  class {'epel': } ->
+  class { 'python' :
+    version    => 'system',
+    pip        => true,
+    dev        => true,
   } ->
-  
-  package {'python-setuptools':
-    ensure      => 'latest',
-  }
-
-  exec { "easy_install pip":                
-    path        => "/usr/local/bin:/usr/bin:/bin",
-    require     => Package["python-setuptools"],
-    subscribe   => Package["python-setuptools"],        
-  } ->
+  # Hack because pip provider looks for pip-python instead of the 'pip' command for RH distro's
   file {'/usr/bin/pip-python':
     ensure      => 'link',
     target      => '/bin/pip'
   }                    
 }                    
 
-class { "python": stage => "pre" }
+class { 'python_config': stage => 'pre' }
 
 package {'Django':
   ensure      => '1.7.6',
   provider	  => 'pip',
 }
+
+class {'apache': }
+class {'mysql::server': }
