@@ -1,8 +1,17 @@
+import argparse
 from classes.ec2server import Ec2Server
 
-server = Ec2Server()
-#instance = server.createInstance(puppetModules=['stankevich-python', 'stahnma-epel', 'puppetlabs-apache', 'puppetlabs-firewall'])
-instance = server.getInstance('i-615b926c')
-server.terminateInstanceAndDeleteVolumes(instance)
+def main():
+    parser = argparse.ArgumentParser(description='LinkOverflow AWS EC2 Instance Creator')
+    parser.add_argument('-e', '--environment', default='dev' ,help='specify the environment type (default: dev)')
+    parser.add_argument('-n', '--num_servers', default=1, type=int, nargs='1', help='Number of servers (default: 1')
+    args = parser.parse_args()
+    
+    server = Ec2Server(puppetModules=['stankevich-python', 'stahnma-epel', 'puppetlabs-apache', 'puppetlabs-firewall'])
+    instance = server.createInstance()
+        
+    server.configEnvironment(instance, '../scripts/django.pp')
 
-#server.configEnvironment(instance, '../scripts/django.pp')
+
+if __name__ == '__main__':
+    main()  

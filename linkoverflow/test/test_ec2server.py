@@ -12,10 +12,10 @@ class TestEc2Server(unittest.TestCase):
         self.assertEqual(self.ec2Object.sshuser, 'centos')
         self.assertEqual(self.ec2Object.region, 'us-west-2')
   
-    def testCreateObject(self):
+    def testCreateAndDelete(self):
         self.instance = self.ec2Object.createInstance()
         self.assertEqual(type(self.instance), boto.ec2.instance.Instance)
-        self.ec2Object.terminateInstanceAndDeleteVolumes(self.instance)
+        self.assertEqual(self.ec2Object.terminateInstanceAndDeleteVolumes(self.instance), True)
 
 if __name__ == '__main__':
     unittest.main()  

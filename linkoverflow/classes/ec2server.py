@@ -110,7 +110,6 @@ class Ec2Server(object):
         open(os.path.join(keyDir, 'known_hosts'), 'a').close()
     
     def _checkStatus(self, status, instance):
-        print "Waiting for " + instance.id + " to enter a " + status + " state..."
         timeout = self.timeout
         start = now = time.time()
         
@@ -173,10 +172,12 @@ class Ec2Server(object):
         print "Deleting volumes associated with " + instance.id + "..."
         for volume in volumes:
             try:
-                volume.delete()
+                status = volume.delete()
             except conn.ResponseError, e:
                 raise
-            
+        
+        return status
+        
     def getInstance(self, instanceId):
         conn = self.conn
         try:

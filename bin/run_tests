@@ -1,0 +1,5 @@
+#!/bin/sh
+
+pushd ../linkoverflow
+  python -m test/test_ec2server
+popd
