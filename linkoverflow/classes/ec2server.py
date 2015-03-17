@@ -2,6 +2,8 @@ import boto.ec2
 import boto.manage.cmdshell
 import time
 import os
+from boto.beanstalk.response import Instance
+
 
 class Ec2Server(object): 
     """
@@ -29,7 +31,8 @@ class Ec2Server(object):
                  puppetModules  = [],
                  webSGName      = 'linkoverflow-webserver-sg',
                  sshSGName      = 'linkoverflow-ssh-sg',        
-                 keyDir         = '~/.ssh'):
+                 keyDir         = '~/.ssh',
+                 timeout        = 120):
         
         self.region         = region
         self.sshuser        = sshuser
@@ -43,6 +46,7 @@ class Ec2Server(object):
         self.conn           = boto.ec2.connect_to_region(region)
         self.webSGName      = webSGName
         self.sshSGName      = sshSGName
+        self.timeout        = timeout
 
     def _createKey(self):
         self._createKeyDir()
@@ -105,6 +109,27 @@ class Ec2Server(object):
     
         open(os.path.join(keyDir, 'known_hosts'), 'a').close()
     
+    def _checkStatus(self, status, instance):
+        print "Waiting for " + instance.id + " to enter a " + status + " state..."
+        timeout = self.timeout
+        start = now = time.time()
+        
+        while now - start < timeout:
+            if instance.state == status:
+                break
+            
+            time.sleep(5)
+            
+            try:
+                instance.update()
+            except boto.exception.EC2ResponseError, e:
+                if e.code == 'InvalidInstanceID.NotFound':
+                    print "Instance not found (" + instance.id + "), retrying..."
+                else:
+                    raise
+            
+            now = time.time()
+    
     def createInstance(self):
         conn = self.conn
         self._createKey()
@@ -118,17 +143,50 @@ class Ec2Server(object):
         
         instance = res.instances[0]
         
-        while instance.update() != "running":
-            time.sleep(5)  # Run this in a green thread, ideally
+        self._checkStatus('running', instance)
         
         return instance
 
+    def terminateInstance(self, instance):
+        if instance.update() != 'terminated':
+            print "Terminating instance (" + instance.id + ")..."
+            conn = self.conn
+            try:
+                conn.terminate_instances(instance_ids=[instance.id])
+    
+                self._checkStatus('terminated', instance)            
+            except conn.ResponseError, e:
+                raise
+        else:
+            print "Instance already terminated (" + instance.id + ")..."
+
+    def terminateInstanceAndDeleteVolumes(self, instance):
+        conn = self.conn
+        
+        try:
+            volumes = conn.get_all_volumes(filters={'attachment.instance-id': instance.id})
+        except conn.ResponseError, e:
+            raise
+        
+        self.terminateInstance(instance)
+        
+        print "Deleting volumes associated with " + instance.id + "..."
+        for volume in volumes:
+            try:
+                volume.delete()
+            except conn.ResponseError, e:
+                raise
+            
     def getInstance(self, instanceId):
         conn = self.conn
         try:
             res = conn.get_all_instances(instance_ids = instanceId)
         except conn.ResponseError, e:
-            raise
+            if e.code == 'InvalidInstanceID.NotFound':
+                print "Instance not found: " + instanceId
+                exit(1)
+            else:
+                raise
         
         instance = res[0].instances[0]
         
@@ -140,8 +198,7 @@ class Ec2Server(object):
         keyName = self.keyName
         user    = self.sshuser
         
-        while instance.update() != "running":
-            time.sleep(5)
+        self._checkStatus('running', instance)
 
         cmd = boto.manage.cmdshell.sshclient_from_instance(instance, os.path.join(keyDir, keyName + '.pem'), user_name=user)
 
