@@ -28,9 +28,9 @@ class TestEc2Server(unittest.TestCase):
         self.assertEqual(type(instance), boto.ec2.instance.Instance)
         self.assertEqual(self.ec2Object.terminateInstanceAndDeleteVolumes(instance), True)
         
-    def testCreateShell(self):
-        instance = self.ec2Object.createInstance()
-        self.ec2Object.createPtyShell(instance)
+    #def testCreateShell(self):
+    #    instance = self.ec2Object.createInstance()
+    #    self.ec2Object.createPtyShell(instance)
 
 if __name__ == '__main__':
     unittest.main()  
