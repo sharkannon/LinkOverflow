@@ -13,6 +13,7 @@ I've had to make some assumptions based on my understanding of how Django works 
 3. You created the site by using (Or use the same structure it generates): `django-admin.py startproject linkoverflow`
 4. You've zipped the package from the top folder (When you unpack the zip, you would find manage.py in the linkoverflow folder).
 5. You are using sqlite vs postgres or mysql.
+6. You know how to install the dependencies.  If not, email me at sharkannon@gmail.com and I'll help you out.
 
 ##Running the application
 1. Check out the application: `git clone https://github.com/sharkannon/LinkOverflow.git`
