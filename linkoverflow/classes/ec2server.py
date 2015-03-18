@@ -129,11 +129,11 @@ class Ec2Server(object):
             now = time.time()
     
     def createInstance(self):
-        print "Creating instance..."
         conn = self.conn
         self._createKey()
         self._createSecurtiyGroup()
         
+        print "Creating instance..."
         res = conn.run_instances(
             self.imageId,
             key_name        = self.keyName,

@@ -17,31 +17,41 @@ class python_config {
   }
 }
 
+class django(
+  $debug      = false,
+  $site_name  = 'linkoverflow.com',
+) {
+  include stdlib
+  
+  $site_basename = regsubst($site_name, '(www\.)?([^\.]+)\.(com|ca|net|org|info|coop|int|co\.uk|org\.uk|ac\.uk|uk)', '\2')
+  package {'Django':
+    ensure   => '1.7.6',
+    provider => 'pip',
+  }
+  
+  class { 'apache':
+    default_mods        => false,
+    default_confd_files => false,
+  }
+  
+  class {'apache::mod::wsgi':
+    wsgi_python_path   => "/var/www/${site_name}",
+  }
+  
+  apache::vhost { $site_name:
+    default_vhost               => true,
+    port                        => '80',
+    docroot                     => '/var/www',
+    wsgi_script_aliases         => { '/' => "/var/www/${site_name}/${site_basename}/wsgi.py" },
+  }
+  
+  firewall { '100 allow http and https access':
+    port   => [80, 443],
+    proto  => tcp,
+    action => accept,
+  }
+}
+
+#class execution
 class { 'python_config': stage => 'pre' }
-
-package {'Django':
-  ensure   => '1.7.6',
-  provider => 'pip',
-}
-
-class { 'apache':
-  default_mods        => false,
-  default_confd_files => false,
-}
-
-class {'apache::mod::wsgi':
-        wsgi_python_path   => '/var/www/mysite',
-}
-
-apache::vhost { 'wsgi.example.com':
-  default_vhost               => true,
-  port                        => '80',
-  docroot                     => '/var/www',
-  wsgi_script_aliases         => { '/' => '/var/www/mysite/mysite/wsgi.py' },
-}
-
-firewall { '100 allow http and https access':
-  port   => [80, 443],
-  proto  => tcp,
-  action => accept,
-}
+class { 'django': }
