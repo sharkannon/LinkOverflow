@@ -18,4 +18,4 @@ I've had to make some assumptions based on my understanding of how Django works 
 ##Running the application
 1. Check out the application: `git clone https://github.com/sharkannon/LinkOverflow.git`
 2. Go to the "bin" directory: `cd LinkOverflow/bin`
-3. Execute: `sh launch -n <number of servers> -f <file/path of Django application zip> -e <environment name (dev/prod)> -s <size of server (micro, large etc.)>`
+3. Execute: `sh launch -d -n <number of servers> -f <file/path of Django application zip> -s <size of server (micro, large etc.)>`

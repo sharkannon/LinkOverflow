@@ -8,7 +8,7 @@ Example:
     $ python main.py -e dev -n 1 -s micro -f /tmp/test.zip
 
 Parameters:
-    -e, --environment: Define which type of environment the servers are used for.  Currently doesn't do anything :)
+    -d, --debug: Specify if debug is enabled (not defined means it's not).. currently it doesn't do anything:)
     -n, --num_instances: Define the number of Instances to create.
     -s, --size: Define the size of the instance. These are AWS EC2 Sizes (micro, large etc.)
     -f, --file: Defins the application file to upload (Must be a ZIP at this time)
@@ -20,7 +20,7 @@ from classes.ec2server import Ec2Server
 
 def main():
     parser = argparse.ArgumentParser(description='LinkOverflow AWS EC2 Instance Creator')
-    parser.add_argument('-e', '--environment', default='dev' ,help='specify the environment type (default: dev)')
+    parser.add_argument('-d', '--debug', action='store_true' ,help='specify if debug (dev) is enabled')
     parser.add_argument('-n', '--num_instances', default=1, type=int, help='Number of instances (default: 1)')
     parser.add_argument('-s', '--size', default='micro', help='size of server (default: micro)')
     parser.add_argument('-f', '--file', help='location of app zip')
