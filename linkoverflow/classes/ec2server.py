@@ -8,44 +8,47 @@ class Ec2Server(object):
     """
     Attributes
     
-    region          = 'us-west-2'
-    defaultUser     = 'centos'
-    imageId         = 'ami-c7d092f7'
-    keyName         = 'linkoverflow'
-    instanceType    = 't2'
-    instanceSize    = 'micro'
-    puppetModules   = ['stankevich-python', 'stahnma-epel', 'puppetlabs-apache']
-    webSGName       = 'linkoverflow-webserver-sg'
-    sshSGName       = 'linkoverflow-ssh-sg'
-    keyDir          = '~/.ssh')   
-    
+    region             = 'us-west-2', 
+    sshuser            = 'centos', 
+    imageId            = 'ami-c7d092f7', 
+    keyName            = 'linkoverflow', 
+    instanceType       = 't2', 
+    instanceSize       = 'micro',
+    puppetModules      = [],
+    webSGName          = 'linkoverflow-webserver-sg',
+    sshSGName          = 'linkoverflow-ssh-sg',        
+    keyDir             = '~/.ssh',
+    puppetScriptPath   = '../scripts/linkoverflow.pp',
+    timeout            = 120  
     """
     def __init__(self, 
-                 region         = 'us-west-2', 
-                 sshuser        = 'centos', 
-                 imageId        = 'ami-c7d092f7', 
-                 keyName        = 'linkoverflow', 
-                 instanceType   = 't2', 
-                 instanceSize   = 'micro',
-                 puppetModules  = [],
-                 webSGName      = 'linkoverflow-webserver-sg',
-                 sshSGName      = 'linkoverflow-ssh-sg',        
-                 keyDir         = '~/.ssh',
-                 timeout        = 120):
+                 region             = 'us-west-2', 
+                 sshuser            = 'centos', 
+                 imageId            = 'ami-c7d092f7', 
+                 keyName            = 'linkoverflow', 
+                 instanceType       = 't2', 
+                 instanceSize       = 'micro',
+                 puppetModules      = [],
+                 webSGName          = 'linkoverflow-webserver-sg',
+                 sshSGName          = 'linkoverflow-ssh-sg',        
+                 keyDir             = '~/.ssh',
+                 puppetScriptPath   = '../scripts/linkoverflow.pp',
+                 timeout            = 120):
         
-        self.region         = region
-        self.sshuser        = sshuser
-        self.imageId        = imageId
-        self.keyName        = keyName
-        self.instanceType   = instanceType
-        self.instanceSize   = instanceSize
-        self.puppetModules  = puppetModules
-        keyDir              = os.path.expandvars(keyDir)
-        self.keyDir         = os.path.expanduser(keyDir)
-        self.conn           = boto.ec2.connect_to_region(region)
-        self.webSGName      = webSGName
-        self.sshSGName      = sshSGName
-        self.timeout        = timeout
+        self.region             = region
+        self.sshuser            = sshuser
+        self.imageId            = imageId
+        self.keyName            = keyName
+        self.instanceType       = instanceType
+        self.instanceSize       = instanceSize
+        self.puppetModules      = puppetModules
+        keyDir                  = os.path.expandvars(keyDir)
+        self.keyDir             = os.path.expanduser(keyDir)
+        self.conn               = boto.ec2.connect_to_region(region)
+        self.webSGName          = webSGName
+        self.sshSGName          = sshSGName
+        self.timeout            = timeout
+        self.puppetScriptPath   = puppetScriptPath
 
     def _createKey(self):
         self._createKeyDir()
@@ -205,9 +208,12 @@ class Ec2Server(object):
 
         return cmd
     
-    def uploadFile(self, instance, localSrc, remoteDest):
+    def _uploadFile(self, instance, localSrc, remoteDest):
         cmd = self.createPtyShell(instance)
         print "Uploading " + os.path.basename(localSrc) + " to " + instance.ip_address  + "..."
+        localSrc = os.path.expandvars(localSrc)
+        localSrc = os.path.expanduser(localSrc)
+        
         sftp = cmd.open_sftp()
         sftp.put(localSrc, remoteDest)
         
@@ -222,28 +228,34 @@ class Ec2Server(object):
         
         return status1, status2
         
-    def installPuppetModules(self, instance, modules=[]):
+    def installPuppetModules(self, instance):
         self.installPuppet(instance)
-        
-        if not modules:
-            modules = self.puppetModules
-        else:
-            modules = self.puppetModules + modules
             
-        for module in modules:
+        for module in self.puppetModules:
             print "Installing Puppet Module (" + module + ") on " + instance.ip_address  + "..."
             cmd = self.createPtyShell(instance)
             channel = cmd.run_pty('sudo /usr/bin/puppet module install ' + module)
             status = channel.recv_exit_status()
             
-    def configEnvironment(self, instance, puppetScriptPath, puppetModules=[]):
-        self.uploadFile(instance, puppetScriptPath, '/tmp/' + os.path.basename(puppetScriptPath))
-        self.installPuppetModules(instance, puppetModules)
+    def configEnvironment(self, instance):
+        self._uploadFile(instance, self.puppetScriptPath, '/tmp/' + os.path.basename(self.puppetScriptPath))
+        self.installPuppetModules(instance)
         
         print "Configuring Environment on "  + instance.ip_address + "..."
         
         cmd = self.createPtyShell(instance)
-        channel = cmd.run_pty('sudo /usr/bin/puppet apply /tmp/' + os.path.basename(puppetScriptPath))
+        channel = cmd.run_pty('sudo /usr/bin/puppet apply /tmp/' + os.path.basename(self.puppetScriptPath))
         status = channel.recv_exit_status()
         
         return status
+    
+    def installApplication(self, instance, applicationPath):
+        self._uploadFile(instance, applicationPath, '/tmp/'+ os.path.basename(applicationPath))
+        self.configEnvironment(instance)
+        
+        cmd = self.createPtyShell(instance)
+        channel = cmd.run_pty('sudo /usr/bin/unzip -o /tmp/' + os.path.basename(applicationPath) + ' -d /var/www/')
+        status = channel.recv_exit_status()
+        
+        return status
+    

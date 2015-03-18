@@ -35,20 +35,23 @@ class django(
   }
   
   class {'apache::mod::wsgi':
-    wsgi_python_path   => "/var/www/${site_name}",
+    wsgi_python_path   => "/var/www/${site_basename}",
   }
   
   apache::vhost { $site_name:
-    default_vhost               => true,
-    port                        => '80',
-    docroot                     => '/var/www',
-    wsgi_script_aliases         => { '/' => "/var/www/${site_name}/${site_basename}/wsgi.py" },
+    default_vhost       => true,
+    port                => '80',
+    docroot             => '/var/www',
+    wsgi_script_aliases => { '/'    => "/var/www/${site_basename}/${site_basename}/wsgi.py" },
   }
   
   firewall { '100 allow http and https access':
     port   => [80, 443],
     proto  => tcp,
     action => accept,
+  }
+  package {'unzip':
+    ensure  => installed,
   }
 }
 
