@@ -6,7 +6,8 @@
 * python-boto (2.25.0 tested)
 
 ##Assumptions
-I've had to make some assumptions based on my understanding of how Django works and installs.
+I've had to make some assumptions based on my understanding of how Django works and installs:
+
 1. The application will be packaged in a .zip file called linkoverflow.zip. 
 2. You created the site by using (Or use the same structure it generates):
 ```
