@@ -5,7 +5,7 @@ This script is designed to be executed on the command line to create EC2 Instanc
 Author: Stephen Herd (sharkannon@gmail.com)
 
 Example:
-    $ python main.py -e dev -n 1 -s micro -f /tmp/test.zip
+    $ python main.py -d -n 1 -s micro -f /tmp/test.zip
 
 Parameters:
     -d, --debug: Specify if debug is enabled (not defined means it's not).. currently it doesn't do anything:)

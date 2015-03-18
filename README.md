@@ -30,7 +30,7 @@ To get your credentials, you'll have to log into your AWS account and get the AW
 
     ```
     [Credentials]
-    aws_access_key_id = <your default access key>`
+    aws_access_key_id = <your default access key>
     aws_secret_access_key = <your default secret key>
      ```
     
