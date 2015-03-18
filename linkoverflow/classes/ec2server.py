@@ -4,7 +4,6 @@ import time
 import os
 from boto.beanstalk.response import Instance
 
-
 class Ec2Server(object): 
     """
     Attributes
@@ -130,6 +129,7 @@ class Ec2Server(object):
             now = time.time()
     
     def createInstance(self):
+        print "Creating instance..."
         conn = self.conn
         self._createKey()
         self._createSecurtiyGroup()

@@ -27,9 +27,18 @@ package {'Django':
 class { 'apache':
   default_mods        => false,
   default_confd_files => false,
-} ->
+}
 
-package {'mod_wsgi': }
+class {'apache::mod::wsgi':
+        wsgi_python_path   => '/var/www/mysite',
+}
+
+apache::vhost { 'wsgi.example.com':
+  default_vhost               => true,
+  port                        => '80',
+  docroot                     => '/var/www',
+  wsgi_script_aliases         => { '/' => '/var/www/mysite/mysite/wsgi.py' },
+}
 
 firewall { '100 allow http and https access':
   port   => [80, 443],
