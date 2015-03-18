@@ -152,7 +152,8 @@ class Ec2Server(object):
             print "***************************************************************"
             print "**** NOTE: An Instance (" + instance.id + ") has already been created and has not been destroyed.  You may want to log into the AWS console and destroy it as they may not be useable."
             print ""
-
+            
+            exit(1)
         return cmd
 
     def installPuppet(self, instance):
