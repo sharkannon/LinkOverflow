@@ -17,15 +17,6 @@ django-admin.py startproject linkoverflow
 4. You are using sqlite vs postgres or mysql.
 
 ##Running the application
-1. Check out the application
-```
-git clone https://github.com/sharkannon/LinkOverflow.git
-```
-2. Go to the "bin" directory.
-```
-cd LinkOverflow/bin
-```
-3. Execute:
-```
-launch <parameters to be defined>
-```
+1. Check out the application: `git clone https://github.com/sharkannon/LinkOverflow.git`
+2. Go to the "bin" directory: `cd LinkOverflow/bin`
+3. Execute: `launch <parameters to be defined>`
