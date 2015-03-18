@@ -18,15 +18,14 @@ I've had to make some assumptions based on my understanding of how Django works 
 
 ##Credentials
 To get your credentials, you'll have to log into your AWS account and get the AWS Access Key and Secret Access Key and provide them in a file like below:
+
 1. Goto http://aws.amazon.com/console/
 2. Sign in to AWS console
 3. Goto "security_credential" (Top right corner of console) ===> Access Keys (Access Key ID and Secret Access Key)
 4. Create a file `~/.aws/credentials`, on the machine you want to run this, that contains:
-```
-[Credentials]
+```[Credentials]
 aws_access_key_id = <your default access key>
-aws_secret_access_key = <your default secret key>
-```
+aws_secret_access_key = <your default secret key>```
 5. Execute (or add to .bash_profile) `export BOTO_CONFIG=~/.aws/credentials`
 
 ##Running the application
