@@ -4,7 +4,6 @@
 * python 2.7.9 (tested)
 * python-paramiko (1.12.4 tested)
 * python-boto (2.25.0 tested)
-* 
 
 ##Assumptions
 I've had to make some assumptions based on my understanding of how Django works and installs:
