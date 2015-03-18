@@ -12,7 +12,7 @@ I've had to make some assumptions based on my understanding of how Django works 
 2. The Django application, that you want to install, will be packaged in a .zip file called linkoverflow.zip. 
 3. You created the site by using (Or use the same structure it generates): 
 
-    ```
+    ```bash
     django-admin startproject linkoverflow
     ```
     
@@ -39,18 +39,18 @@ To get your credentials, you'll have to log into your AWS account and get the AW
 ##Running the application
 1. Check out the application: 
 
-    ```
+    ```bash
     git clone https://github.com/sharkannon/LinkOverflow.git
     ```
 
 2. Go to the "bin" directory: 
 
-    ```
+    ```bash
     cd LinkOverflow/bin
     ```
     
 3. Execute:
 
-    ```
+    ```bash
     sh launch -d -n <number of servers> -f <file/path of Django application zip> -s <size of server (micro, large etc.)>
     ```
