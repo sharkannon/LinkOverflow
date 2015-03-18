@@ -1,5 +1,5 @@
 #!/bin/sh
 
-pushd ../linkoverflow
+pushd ../linkoverflow > /dev/null
   python -m test/test_ec2server
-popd
+popd > /dev/null

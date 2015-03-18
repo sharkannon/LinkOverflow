@@ -1,12 +1,27 @@
 #!/usr/bin/env python
+"""Main Screipt for LinkOverflow
+This script is designed to be executed on the command line to create EC2 Instances.
+
+Author: Stephen Herd (sharkannon@gmail.com)
+
+Example:
+    $ python main.py -e dev -n 1 -s micro -f /tmp/test.zip
+
+Parameters:
+    -e, --environment: Define which type of environment the servers are used for.  Currently doesn't do anything :)
+    -n, --num_instances: Define the number of Instances to create.
+    -s, --size: Define the size of the instance. These are AWS EC2 Sizes (micro, large etc.)
+    -f, --file: Defins the application file to upload (Must be a ZIP at this time)
+"""
 
 import argparse
+import os
 from classes.ec2server import Ec2Server
 
 def main():
     parser = argparse.ArgumentParser(description='LinkOverflow AWS EC2 Instance Creator')
     parser.add_argument('-e', '--environment', default='dev' ,help='specify the environment type (default: dev)')
-    parser.add_argument('-n', '--num_servers', default=1, type=int, help='Number of servers (default: 1)')
+    parser.add_argument('-n', '--num_instances', default=1, type=int, help='Number of instances (default: 1)')
     parser.add_argument('-s', '--size', default='micro', help='size of server (default: micro)')
     parser.add_argument('-f', '--file', help='location of app zip')
     args = parser.parse_args()
@@ -14,7 +29,11 @@ def main():
     count = 1
     instances = []
 
-    while count <= args.num_servers:
+    if not os.path.isfile(os.path.expanduser(os.path.expandvars(args.file))): 
+        print "File not found: " + args.file + ", please verify and try again."
+        exit(1)
+
+    while count <= args.num_instances:
         server = Ec2Server(instanceSize=args.size, puppetModules=['stankevich-python', 'stahnma-epel', 'puppetlabs-apache', 'puppetlabs-firewall'])
         instance = server.createInstance()
         server.installApplication(instance, args.file)
