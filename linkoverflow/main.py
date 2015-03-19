@@ -20,10 +20,11 @@ from classes.ec2server import Ec2Server
 
 def main():
     parser = argparse.ArgumentParser(description='LinkOverflow AWS EC2 Instance Creator')
+    reqGroup = parser.add_argument_group('required arguments')
     parser.add_argument('-d', '--debug', action='store_true' ,help='specify if debug (dev) is enabled')
     parser.add_argument('-n', '--num_instances', default=1, type=int, help='Number of instances (default: 1)')
     parser.add_argument('-s', '--size', default='micro', help='size of server (default: micro)')
-    parser.add_argument('-f', '--file', help='location of app zip')
+    reqGroup.add_argument('-f', '--file', required=True, help='location of app zip')
     args = parser.parse_args()
     
     count = 1
@@ -51,7 +52,7 @@ def main():
         print "URL: http://" + i.ip_address
         print "**************************************"
         
-    print "SSH Key is found at: ~/.ssh/linkoverflow.pem. Please save this file or in the future you won't be able to log in."
+    print "SSH Key is found at: ~/.ssh/linkoverflow.pem. Please save this file or in the future you won't be able to log in to the instances you have created."
 
 if __name__ == '__main__':
     main()
