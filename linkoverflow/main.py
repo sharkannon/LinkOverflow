@@ -16,7 +16,18 @@ Parameters:
 
 import argparse
 import os
+from threading import Thread
+import Queue
+
 from classes.ec2server import Ec2Server
+
+def createNewInstance(args, q):
+    server = Ec2Server(instanceSize=args.size, puppetModules=['stankevich-python', 'stahnma-epel', 'puppetlabs-apache', 'puppetlabs-firewall'])
+    instance = server.createInstance()
+    q.put(instance)
+    
+    server.installApplication(instance, args.file)
+    q.task_done()
 
 def main():
     parser = argparse.ArgumentParser(description='LinkOverflow AWS EC2 Instance Creator')
@@ -27,21 +38,36 @@ def main():
     reqGroup.add_argument('-f', '--file', required=True, help='location of app zip')
     args = parser.parse_args()
     
-    count = 1
-    instances = []
-
     if not os.path.isfile(os.path.expanduser(os.path.expandvars(args.file))): 
         print "File not found: " + args.file + ", please verify and try again."
         exit(1)
-        
-    server = Ec2Server(instanceSize=args.size, puppetModules=['stankevich-python', 'stahnma-epel', 'puppetlabs-apache', 'puppetlabs-firewall'])
     
-    while count <= args.num_instances:    
-        instance = server.createInstance()
-        server.installApplication(instance, args.file)
-        instances.append(instance)
+    count = 1
+    threads = []
+            
+    # Create num_instances number of instances
+    q = Queue.Queue()
+    
+    # Create threads for each instances based on num_instances
+    while count <= args.num_instances:
+        threads.append(Thread(target=createNewInstance, args=(args,q)))
         count = count + 1
         
+    # Start the threads
+    for thread in threads:
+        thread.start()
+    
+    instances = []
+    
+    # Wait for threds to finish and append results into the instances List
+    for thread in threads:
+        thread.join()
+        instances.append(q.get())
+
+    
+    
+    print "Exiting Start"
+    
     print "**************************************"
     print "LinkOverflow Environments:"
     print "**************************************"
@@ -49,6 +75,7 @@ def main():
         print "Instance ID: " + i.id
         print "Instance IP: " + i.ip_address
         print "Username: centos"
+        print "Environment: " + 'Development' if args.debug else 'Production'
         print "URL: http://" + i.ip_address
         print "**************************************"
         
