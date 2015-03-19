@@ -32,9 +32,10 @@ def main():
     if not os.path.isfile(os.path.expanduser(os.path.expandvars(args.file))): 
         print "File not found: " + args.file + ", please verify and try again."
         exit(1)
-
-    while count <= args.num_instances:
-        server = Ec2Server(instanceSize=args.size, puppetModules=['stankevich-python', 'stahnma-epel', 'puppetlabs-apache', 'puppetlabs-firewall'])
+        
+    server = Ec2Server(instanceSize=args.size, puppetModules=['stankevich-python', 'stahnma-epel', 'puppetlabs-apache', 'puppetlabs-firewall'])
+    
+    while count <= args.num_instances:    
         instance = server.createInstance()
         server.installApplication(instance, args.file)
         instances.append(instance)
