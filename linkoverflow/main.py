@@ -64,8 +64,6 @@ def main():
         thread.join()
         instances.append(q.get())
 
-    
-    
     print "Exiting Start"
     
     print "**************************************"
@@ -75,7 +73,7 @@ def main():
         print "Instance ID: " + i.id
         print "Instance IP: " + i.ip_address
         print "Username: centos"
-        print "Environment: " + 'Development' if args.debug else 'Production'
+        print "Environment: Development" if args.debug else "Environment: Production"
         print "URL: http://" + i.ip_address
         print "**************************************"
         
